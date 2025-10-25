@@ -318,6 +318,257 @@
         return html;
     }
 
+    async function addNote(gameId) {
+        console.log('Add note called for game:', gameId);
+        
+        // Create custom modal
+        const modal = document.createElement('div');
+        modal.id = 'note-modal';
+        modal.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        `;
+        
+        const modalContent = document.createElement('div');
+        modalContent.style.cssText = `
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            width: 400px;
+            max-width: 90%;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        `;
+        
+        // Create title
+        const title = document.createElement('h3');
+        title.textContent = 'Add Note';
+        title.style.marginTop = '0';
+        
+        // Create textarea
+        const textarea = document.createElement('textarea');
+        textarea.placeholder = 'Enter your note here...';
+        textarea.style.cssText = `
+            width: 100%;
+            height: 120px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            resize: vertical;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            margin-bottom: 15px;
+            box-sizing: border-box;
+        `;
+        
+        // Create button container
+        const buttonContainer = document.createElement('div');
+        buttonContainer.style.cssText = `
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        `;
+        
+        // Create cancel button
+        const cancelButton = document.createElement('button');
+        cancelButton.textContent = 'Cancel';
+        cancelButton.style.cssText = `
+            padding: 8px 16px;
+            background: #6c757d;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        `;
+        
+        // Create submit button
+        const submitButton = document.createElement('button');
+        submitButton.textContent = 'Add Note';
+        submitButton.style.cssText = `
+            padding: 8px 16px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        `;
+        
+        // Close modal function
+        const closeModal = () => {
+            if (document.body.contains(modal)) {
+                document.body.removeChild(modal);
+            }
+        };
+        
+        // Submit note function
+        const submitNote = async () => {
+            const noteContent = textarea.value.trim();
+            if (!noteContent) {
+                alert('Please enter a note');
+                return;
+            }
+            
+            closeModal();
+            
+            // Process the note submission
+            console.log('Processing note for game:', gameId, 'Content:', noteContent);
+            
+            try {
+                const response = await fetch(`http://localhost:3000/games/${gameId}/add-note`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        content: noteContent
+                    })
+                });
+                
+                console.log('Add note response status:', response.status);
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    console.log('Note added successfully:', result);
+                    await loadGames();
+                    
+                    // Refresh the current selection
+                    const currentGame = filteredGames.find(g => g.id === gameId);
+                    if (currentGame) {
+                        const index = filteredGames.indexOf(currentGame);
+                        updateSelection(index, gameId);
+                    }
+                } else {
+                    const errorText = await response.text();
+                    console.error('Server returned error:', errorText);
+                    let errorMessage = `HTTP error! status: ${response.status}`;
+                    try {
+                        const errorData = JSON.parse(errorText);
+                        errorMessage = errorData.error || errorMessage;
+                    } catch (e) {
+                        errorMessage = errorText || errorMessage;
+                    }
+                    alert('Error adding note: ' + errorMessage);
+                }
+            } catch (error) {
+                console.error('Error adding note:', error);
+                alert('Error adding note: ' + error.message);
+            }
+        };
+        
+        // Event handlers
+        cancelButton.onclick = closeModal;
+        submitButton.onclick = submitNote;
+        
+        // Keyboard events
+        textarea.onkeydown = (e) => {
+            if (e.ctrlKey && e.key === 'Enter') {
+                submitNote();
+            }
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        };
+        
+        // Assemble modal
+        buttonContainer.appendChild(cancelButton);
+        buttonContainer.appendChild(submitButton);
+        
+        modalContent.appendChild(title);
+        modalContent.appendChild(textarea);
+        modalContent.appendChild(buttonContainer);
+        modal.appendChild(modalContent);
+        document.body.appendChild(modal);
+        
+        // Focus the textarea
+        textarea.focus();
+        
+        // Close modal when clicking outside
+        modal.onclick = (e) => {
+            if (e.target === modal) {
+                closeModal();
+            }
+        };
+    }
+	
+
+    async function deleteNote(gameId, noteIndex) {
+        if (!confirm('Are you sure you want to delete this note?')) return;
+        
+        try {
+            const response = await fetch(`http://localhost:3000/games/${gameId}/delete-note/${noteIndex}`, {
+                method: 'DELETE'
+            });
+            
+            if (response.ok) {
+                await loadGames();
+                // Refresh the current selection
+                const currentGame = filteredGames.find(g => g.id === gameId);
+                if (currentGame) {
+                    const index = filteredGames.indexOf(currentGame);
+                    updateSelection(index, gameId);
+                }
+            } else {
+                const error = await response.json();
+                alert('Error deleting note: ' + error.error);
+            }
+        } catch (error) {
+            console.error('Error deleting note:', error);
+            alert('Error deleting note: ' + error.message);
+        }
+    }
+
+    function togglePhotoSize(img) {
+        img.classList.toggle('photo-fullsize');
+    }
+	
+	    function renderAdditionalContent(game) {
+        let html = '';
+        
+        // Additional photos
+        if (game.additionalPhotos && game.additionalPhotos.length > 0) {
+            html += '<div class="additional-photos">';
+            html += '<strong>Additional Photos:</strong><br>';
+            html += '<div class="photo-gallery">';
+            game.additionalPhotos.forEach((photo, index) => {
+                html += `
+                    <div class="photo-item">
+                        <img src="${photo.path}" alt="Additional photo ${index + 1}" 
+                             onclick="togglePhotoSize(this)">
+                        <button class="delete-photo-btn" 
+                                onclick="deletePhoto(${game.id}, ${index})">×</button>
+                    </div>
+                `;
+            });
+            html += '</div></div>';
+        }
+        
+        // Additional notes
+        if (game.additionalNotes && game.additionalNotes.length > 0) {
+            html += '<div class="additional-notes">';
+            html += '<strong>Additional Notes:</strong>';
+            game.additionalNotes.forEach((note, index) => {
+                html += `
+                    <div class="note-item">
+                        <div class="note-content">${note.content}</div>
+                        <div class="note-date">${new Date(note.dateAdded).toLocaleDateString()}</div>
+                        <button class="delete-note-btn" 
+                                onclick="deleteNote(${game.id}, ${index})">×</button>
+                    </div>
+                `;
+            });
+            html += '</div>';
+        }
+        
+        return html;
+    }
+
     async function addPhoto(gameId) {
         console.log('Adding photo for game:', gameId);
         
@@ -403,38 +654,6 @@
         }
     }
 
-    async function addNote(gameId) {
-        const noteContent = prompt('Enter your note:');
-        if (!noteContent || noteContent.trim() === '') return;
-        
-        try {
-            const response = await fetch(`http://localhost:3000/games/${gameId}/add-note`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    content: noteContent.trim()
-                })
-            });
-            
-            if (response.ok) {
-                await loadGames();
-                // Refresh the current selection
-                const currentGame = filteredGames.find(g => g.id === gameId);
-                if (currentGame) {
-                    const index = filteredGames.indexOf(currentGame);
-                    updateSelection(index, gameId);
-                }
-            } else {
-                const error = await response.json();
-                alert('Error adding note: ' + error.error);
-            }
-        } catch (error) {
-            console.error('Error adding note:', error);
-            alert('Error adding note: ' + error.message);
-        }
-    }
 
     async function deleteNote(gameId, noteIndex) {
         if (!confirm('Are you sure you want to delete this note?')) return;
