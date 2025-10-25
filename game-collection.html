@@ -4,404 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Game Collection</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            margin: 0;
-            background-color: #f5f5f5;
-            height: 100vh;
-            overflow: hidden;
-        }
-
-        .menu-container {
-            width: 300px;
-            background: white;
-            border-right: 1px solid #ddd;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .menu-header {
-            padding: 15px;
-            border-bottom: 1px solid #eee;
-        }
-
-        .menu-title {
-            text-align: center;
-            color: #333;
-            margin: 0 0 15px 0;
-            font-size: 1.5em;
-            letter-spacing: 2px;
-        }
-
-        #searchInput {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
-
-        /* Filter controls styling */
-        .filter-controls {
-            padding: 10px;
-            border-bottom: 1px solid #eee;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .filter-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .filter-label {
-            font-weight: bold;
-            font-size: 0.9em;
-            color: #555;
-        }
-
-        .filter-button {
-            padding: 5px 10px;
-            background-color: #f0f0f0;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.85em;
-            transition: all 0.2s;
-        }
-
-        .filter-button:hover {
-            background-color: #e0e0e0;
-        }
-
-        .filter-button.active {
-            background-color: #007bff;
-            color: white;
-            border-color: #007bff;
-        }
-
-        .filter-select {
-            padding: 5px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            background-color: white;
-        }
-
-        .menu {
-            flex: 1;
-            padding: 10px;
-            overflow-y: auto;
-        }
-
-        .menu-item {
-            padding: 12px 15px;
-            margin: 5px 0;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: all 0.2s;
-            border: 1px solid #eee;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .menu-item:hover {
-            background-color: #f0f0f0;
-        }
-
-        .menu-item.selected {
-            background-color: #007bff;
-            color: white;
-            border-color: #007bff;
-        }
-
-        .description-container {
-            flex: 1;
-            padding: 20px;
-            background: white;
-            overflow-y: auto;
-            position: relative;
-        }
-
-        /* Updated media container and image styles */
-        .media-container {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .media-item {
-            height: 0;
-            padding-bottom: 100%;
-            position: relative;
-            overflow: hidden;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            background-color: #f0f0f0;
-        }
-
-        .media-item img {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            background-color: #f8f8f8;
-            transition: all 0.3s ease;
-        }
-
-        .media-item:hover img {
-            transform: scale(1.02);
-        }
-
-        .media-item .no-image {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #999;
-            font-size: 14px;
-        }
-
-        .media-fullsize {
-            grid-column: span 2;
-            height: 0;
-            padding-bottom: 56.25%;
-        }
-
-        .game-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 10px;
-        }
-
-        .game-title {
-            font-size: 1.8em;
-            margin: 0;
-            color: #333;
-        }
-
-        .game-date {
-            color: #777;
-            font-size: 0.9em;
-        }
-
-        .game-detail {
-            margin-bottom: 10px;
-            padding: 8px 0;
-            border-bottom: 1px solid #f0f0f0;
-        }
-
-        .game-detail-label {
-            font-weight: bold;
-            display: inline-block;
-            width: 120px;
-            color: #555;
-        }
-
-        .rating-stars {
-            color: gold;
-            font-size: 1.3em;
-            letter-spacing: 3px;
-        }
-
-        .strikes {
-            color: #ff4444;
-            font-size: 1.3em;
-            letter-spacing: 5px;
-        }
-
-        .platform-tag {
-            display: inline-block;
-            padding: 3px 8px;
-            background-color: #e0e0e0;
-            border-radius: 3px;
-            font-size: 0.9em;
-        }
-
-        .finished-status {
-            font-weight: bold;
-        }
-
-        .finished-yes {
-            color: #28a745;
-        }
-
-        .finished-no {
-            color: #6c757d;
-        }
-		
-		.is_checked-status {
-            font-weight: bold;
-        }
-
-        .is_checked-yes {
-            color: #28a745;
-        }
-
-        .is_checked-no {
-            color: #6c757d;
-        }
-
-        .game-link {
-            color: #007bff;
-            text-decoration: none;
-            word-break: break-all;
-        }
-
-        .game-link:hover {
-            text-decoration: underline;
-        }
-
-		.game-notes {
-			white-space: pre-wrap;
-			line-height: 1.6;
-			margin-top: 20px;
-			padding: 15px;
-			background-color: #f8f9fa;
-			border-radius: 4px;
-			border-left: 4px solid #007bff;
-			overflow-y: auto;  /* Enables vertical scrolling when needed */
-			max-height: 200px; /* Set a maximum height for the container */
-			word-wrap: break-word; /* Ensures long words break and wrap */
-		}
-
-        .entry-actions {
-            display: flex;
-            gap: 10px;
-            position: absolute;
-            bottom: 20px;
-            right: 20px;
-        }
-		
-				/* Add this with the other button styles */
-		.save-btn {
-			padding: 8px 15px;
-			background-color: #28a745;
-			color: white;
-			border: none;
-			border-radius: 4px;
-			cursor: pointer;
-			font-size: 14px;
-		}
-
-		.save-btn:hover {
-			background-color: #218838;
-		}
-
-        .edit-btn, .delete-btn {
-            padding: 8px 15px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-        }
-
-        .edit-btn {
-            background-color: #ffc107;
-            color: black;
-        }
-
-        .delete-btn {
-            background-color: #dc3545;
-            color: white;
-        }
-
-        .add-entry {
-            padding: 10px;
-            text-align: center;
-            border-top: 1px solid #eee;
-        }
-
-        #newEntryBtn {
-            padding: 8px 15px;
-            background-color: #28a745;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            width: 100%;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
-        .no-selection {
-            color: #777;
-            text-align: center;
-            margin-top: 50px;
-            font-size: 1.2em;
-        }
-
-        .no-results {
-            color: #777;
-            text-align: center;
-            padding: 20px;
-        }
-
-        #exportBtn, #importBtn {
-            padding: 8px 15px;
-            background-color: #6c757d;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            width: 48%;
-            box-sizing: border-box;
-            margin-top: 10px;
-        }
-
-        #exportBtn:hover, #importBtn:hover {
-            background-color: #5a6268;
-        }
-
-        .button-group {
-            display: flex;
-            justify-content: space-between;
-            gap: 4%;
-        }
-
-        /* Media queries for responsive design */
-        @media screen and (max-width: 1200px) {
-            .media-container {
-                display: flex;
-                flex-direction: column;
-            }
-
-            .media-item {
-                padding-bottom: 70%;
-            }
-
-            .media-fullsize {
-                padding-bottom: 70%;
-            }
-        }
-
-        /* Key navigation indicator */
-        .keyboard-shortcuts {
-            position: fixed;
-            bottom: 10px;
-            left: 10px;
-            background-color: rgba(0, 0, 0, 0.7);
-            color: white;
-            padding: 5px 10px;
-            border-radius: 3px;
-            font-size: 12px;
-            opacity: 0.7;
-        }
-    </style>
+	<link rel="stylesheet" href="styles.css">
 </head>
 <body>
 <div class="menu-container">
@@ -594,11 +197,17 @@
                             ${game.notes}
                         </div>
                         ` : ''}
+						
+						<div class="additional-content">
+							${renderAdditionalContent(game)}
+						</div>
 
                         <div class="entry-actions">
 							<button class="save-btn" onclick="saveGameFiles(${game.id})">Save</button>
                             <button class="edit-btn" onclick="editGame(${game.id})">Edit</button>
                             <button class="delete-btn" onclick="deleteGame(${game.id})">Delete</button>
+                            <button class="add-photo-btn" onclick="addPhoto(${game.id})">Add Photo</button>
+                            <button class="add-note-btn" onclick="addNote(${game.id})">Add Note</button>
                         </div>
                     `;
 
@@ -666,6 +275,195 @@
                 alert('Error deleting game: ' + error.message);
             }
         }
+    }
+	
+	    function renderAdditionalContent(game) {
+        let html = '';
+        
+        // Additional photos
+        if (game.additionalPhotos && game.additionalPhotos.length > 0) {
+            html += '<div class="additional-photos">';
+            html += '<strong>Additional Photos:</strong><br>';
+            html += '<div class="photo-gallery">';
+            game.additionalPhotos.forEach((photo, index) => {
+                html += `
+                    <div class="photo-item">
+                        <img src="${photo.path}" alt="Additional photo ${index + 1}" 
+                             onclick="togglePhotoSize(this)">
+                        <button class="delete-photo-btn" 
+                                onclick="deletePhoto(${game.id}, ${index})">×</button>
+                    </div>
+                `;
+            });
+            html += '</div></div>';
+        }
+        
+        // Additional notes
+        if (game.additionalNotes && game.additionalNotes.length > 0) {
+            html += '<div class="additional-notes">';
+            html += '<strong>Additional Notes:</strong>';
+            game.additionalNotes.forEach((note, index) => {
+                html += `
+                    <div class="note-item">
+                        <div class="note-content">${note.content}</div>
+                        <div class="note-date">${new Date(note.dateAdded).toLocaleDateString()}</div>
+                        <button class="delete-note-btn" 
+                                onclick="deleteNote(${game.id}, ${index})">×</button>
+                    </div>
+                `;
+            });
+            html += '</div>';
+        }
+        
+        return html;
+    }
+
+    async function addPhoto(gameId) {
+        console.log('Adding photo for game:', gameId);
+        
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        input.onchange = async (e) => {
+            const file = e.target.files[0];
+            if (!file) {
+                console.log('No file selected');
+                return;
+            }
+            
+            console.log('File selected:', file.name, 'Size:', file.size);
+            
+            try {
+                const formData = new FormData();
+                formData.append('photo', file);
+                
+                console.log('Sending request to:', `http://localhost:3000/games/${gameId}/add-photo`);
+                
+                const response = await fetch(`http://localhost:3000/games/${gameId}/add-photo`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                console.log('Response status:', response.status);
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    console.log('Photo added successfully:', result);
+                    await loadGames();
+                    
+                    // Refresh the current selection
+                    const currentGame = filteredGames.find(g => g.id === gameId);
+                    if (currentGame) {
+                        const index = filteredGames.indexOf(currentGame);
+                        updateSelection(index, gameId);
+                    }
+                } else {
+                    const errorText = await response.text();
+                    console.error('Server returned error:', errorText);
+                    let errorMessage = `HTTP error! status: ${response.status}`;
+                    try {
+                        const errorData = JSON.parse(errorText);
+                        errorMessage = errorData.error || errorMessage;
+                    } catch (e) {
+                        errorMessage = errorText || errorMessage;
+                    }
+                    throw new Error(errorMessage);
+                }
+            } catch (error) {
+                console.error('Error adding photo:', error);
+                alert('Error adding photo: ' + error.message);
+            }
+        };
+        input.click();
+    }
+
+    async function deletePhoto(gameId, photoIndex) {
+        if (!confirm('Are you sure you want to delete this photo?')) return;
+        
+        try {
+            const response = await fetch(`http://localhost:3000/games/${gameId}/delete-photo/${photoIndex}`, {
+                method: 'DELETE'
+            });
+            
+            if (response.ok) {
+                await loadGames();
+                // Refresh the current selection
+                const currentGame = filteredGames.find(g => g.id === gameId);
+                if (currentGame) {
+                    const index = filteredGames.indexOf(currentGame);
+                    updateSelection(index, gameId);
+                }
+            } else {
+                const error = await response.json();
+                alert('Error deleting photo: ' + error.error);
+            }
+        } catch (error) {
+            console.error('Error deleting photo:', error);
+            alert('Error deleting photo: ' + error.message);
+        }
+    }
+
+    async function addNote(gameId) {
+        const noteContent = prompt('Enter your note:');
+        if (!noteContent || noteContent.trim() === '') return;
+        
+        try {
+            const response = await fetch(`http://localhost:3000/games/${gameId}/add-note`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    content: noteContent.trim()
+                })
+            });
+            
+            if (response.ok) {
+                await loadGames();
+                // Refresh the current selection
+                const currentGame = filteredGames.find(g => g.id === gameId);
+                if (currentGame) {
+                    const index = filteredGames.indexOf(currentGame);
+                    updateSelection(index, gameId);
+                }
+            } else {
+                const error = await response.json();
+                alert('Error adding note: ' + error.error);
+            }
+        } catch (error) {
+            console.error('Error adding note:', error);
+            alert('Error adding note: ' + error.message);
+        }
+    }
+
+    async function deleteNote(gameId, noteIndex) {
+        if (!confirm('Are you sure you want to delete this note?')) return;
+        
+        try {
+            const response = await fetch(`http://localhost:3000/games/${gameId}/delete-note/${noteIndex}`, {
+                method: 'DELETE'
+            });
+            
+            if (response.ok) {
+                await loadGames();
+                // Refresh the current selection
+                const currentGame = filteredGames.find(g => g.id === gameId);
+                if (currentGame) {
+                    const index = filteredGames.indexOf(currentGame);
+                    updateSelection(index, gameId);
+                }
+            } else {
+                const error = await response.json();
+                alert('Error deleting note: ' + error.error);
+            }
+        } catch (error) {
+            console.error('Error deleting note:', error);
+            alert('Error deleting note: ' + error.message);
+        }
+    }
+
+    function togglePhotoSize(img) {
+        img.classList.toggle('photo-fullsize');
     }
 
     async function exportGames() {

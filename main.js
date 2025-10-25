@@ -103,6 +103,197 @@ async function initializeApp() {
     // Serve uploaded files
     const uploadsPath = path.join(getAppDataPath(), 'uploads');
     expressApp.use('/uploads', express.static(uploadsPath));
+	
+	    // Configure multer for additional photos
+    const photoStorage = multer.diskStorage({
+      destination: (req, file, cb) => {
+        const gameId = req.params.id;
+        // Get the game to find its title
+        db.getGameById(gameId).then(game => {
+          if (!game) {
+            return cb(new Error('Game not found'));
+          }
+          const folderName = sanitizeFolderName(game.title);
+          const uploadDir = path.join(getAppDataPath(), 'uploads', folderName);
+          
+          if (!fs.existsSync(uploadDir)) {
+            fs.mkdirSync(uploadDir, { recursive: true });
+          }
+          cb(null, uploadDir);
+        }).catch(err => {
+          cb(err);
+        });
+      },
+      filename: (req, file, cb) => {
+        const uniqueName = 'additional_' + uuidv4() + path.extname(file.originalname);
+        cb(null, uniqueName);
+      }
+    });
+
+    const photoUpload = multer({ storage: photoStorage });
+
+    // Add photo to game
+    expressApp.post('/games/:id/add-photo', photoUpload.single('photo'), async (req, res) => {
+      try {
+        console.log('Add photo endpoint called for game:', req.params.id);
+        
+        const gameId = req.params.id;
+        const game = await db.getGameById(gameId);
+        
+        if (!game) {
+          console.log('Game not found:', gameId);
+          return res.status(404).json({ error: 'Game not found' });
+        }
+        
+        if (!req.file) {
+          console.log('No file uploaded');
+          return res.status(400).json({ error: 'No photo uploaded' });
+        }
+
+        console.log('File uploaded successfully:', req.file.filename);
+        
+        const folderName = sanitizeFolderName(game.title);
+        const photoPath = `http://localhost:${PORT}/uploads/${folderName}/${req.file.filename}`;
+        
+        // Get existing additionalPhotos
+        const additionalPhotos = game.additionalPhotos || [];
+        
+        // Add new photo
+        additionalPhotos.push({
+          path: photoPath,
+          filename: req.file.filename,
+          dateAdded: new Date().toISOString()
+        });
+        
+        console.log('Updated photos array:', additionalPhotos);
+        
+        // Update the game in database
+        await db.updateGame(gameId, { 
+          additionalPhotos: additionalPhotos
+        });
+        
+        console.log('Photo added to database successfully');
+        res.json({ 
+          message: 'Photo added successfully',
+          photo: {
+            path: photoPath,
+            filename: req.file.filename
+          }
+        });
+        
+      } catch (error) {
+        console.error('Error adding photo:', error);
+        res.status(500).json({ error: error.message });
+      }
+    });
+
+    // Add note to game
+    expressApp.post('/games/:id/add-note', async (req, res) => {
+      try {
+        console.log('Add note endpoint called for game:', req.params.id);
+        
+        const gameId = req.params.id;
+        const game = await db.getGameById(gameId);
+        
+        if (!game) {
+          return res.status(404).json({ error: 'Game not found' });
+        }
+        
+        const { content } = req.body;
+        if (!content || content.trim() === '') {
+          return res.status(400).json({ error: 'Note content is required' });
+        }
+        
+        // Get existing additionalNotes
+        const additionalNotes = game.additionalNotes || [];
+        
+        // Add new note
+        additionalNotes.push({
+          content: content.trim(),
+          dateAdded: new Date().toISOString()
+        });
+        
+        console.log('Updated notes array:', additionalNotes);
+        
+        await db.updateGame(gameId, { 
+          additionalNotes: additionalNotes
+        });
+        
+        res.json({ message: 'Note added successfully' });
+      } catch (error) {
+        console.error('Error adding note:', error);
+        res.status(500).json({ error: error.message });
+      }
+    });
+
+    // Delete photo from game
+    expressApp.delete('/games/:id/delete-photo/:photoIndex', async (req, res) => {
+      try {
+        const gameId = req.params.id;
+        const photoIndex = parseInt(req.params.photoIndex);
+        const game = await db.getGameById(gameId);
+        
+        if (!game) {
+          return res.status(404).json({ error: 'Game not found' });
+        }
+        
+        const additionalPhotos = game.additionalPhotos || [];
+        
+        if (photoIndex < 0 || photoIndex >= additionalPhotos.length) {
+          return res.status(400).json({ error: 'Invalid photo index' });
+        }
+        
+        // Delete the file from filesystem
+        const photoToDelete = additionalPhotos[photoIndex];
+        const filePath = photoToDelete.path.replace(`http://localhost:${PORT}`, getAppDataPath());
+        if (fs.existsSync(filePath)) {
+          fs.unlinkSync(filePath);
+        }
+        
+        // Remove from array
+        additionalPhotos.splice(photoIndex, 1);
+        
+        await db.updateGame(gameId, { 
+          additionalPhotos: additionalPhotos
+        });
+        
+        res.json({ message: 'Photo deleted successfully' });
+      } catch (error) {
+        console.error('Error deleting photo:', error);
+        res.status(500).json({ error: error.message });
+      }
+    });
+
+    // Delete note from game
+    expressApp.delete('/games/:id/delete-note/:noteIndex', async (req, res) => {
+      try {
+        const gameId = req.params.id;
+        const noteIndex = parseInt(req.params.noteIndex);
+        const game = await db.getGameById(gameId);
+        
+        if (!game) {
+          return res.status(404).json({ error: 'Game not found' });
+        }
+        
+        const additionalNotes = game.additionalNotes || [];
+        
+        if (noteIndex < 0 || noteIndex >= additionalNotes.length) {
+          return res.status(400).json({ error: 'Invalid note index' });
+        }
+        
+        // Remove from array
+        additionalNotes.splice(noteIndex, 1);
+        
+        await db.updateGame(gameId, { 
+          additionalNotes: additionalNotes
+        });
+        
+        res.json({ message: 'Note deleted successfully' });
+      } catch (error) {
+        console.error('Error deleting note:', error);
+        res.status(500).json({ error: error.message });
+      }
+    });
     
     // API Routes
 	expressApp.get('/games/list', async (req, res) => {
