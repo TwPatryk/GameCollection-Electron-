@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Game</title>
+    <style>
+        body {
+          font-family: 'Arial', sans-serif;
+          background-color: #f5f5f5;
+          margin: 0;
+          padding: 20px;
+          color: #333;
+        }
+
+        .form-container {
+          max-width: 800px;
+          margin: 0 auto;
+          background: white;
+          padding: 30px;
+          border-radius: 8px;
+          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+          text-align: center;
+          color: #2c3e50;
+          margin-bottom: 30px;
+          font-weight: 300;
+          letter-spacing: 1px;
+        }
+
+        .form-group {
+          margin-bottom: 20px;
+        }
+
+        label {
+          display: block;
+          margin-bottom: 8px;
+          font-weight: 500;
+          color: #2c3e50;
+        }
+
+        input[type="text"],
+        textarea,
+        select {
+          width: 100%;
+          padding: 12px;
+          border: 1px solid #ddd;
+          border-radius: 4px;
+          font-size: 16px;
+          transition: border-color 0.3s;
+          box-sizing: border-box;
+        }
+
+        input[type="text"]:focus,
+        textarea:focus,
+        select:focus {
+          border-color: #3498db;
+          outline: none;
+        }
+
+        textarea {
+          min-height: 120px;
+          resize: vertical;
+        }
+
+        .rating-container {
+          display: flex;
+          align-items: center;
+          gap: 15px;
+        }
+
+        .star-rating {
+          display: flex;
+          gap: 5px;
+        }
+
+        .star-rating input[type="radio"] {
+          display: none;
+        }
+
+        .star-rating label {
+          font-size: 24px;
+          color: #ddd;
+          cursor: pointer;
+          transition: color 0.2s;
+        }
+
+        .star-rating label:hover,
+        .star-rating label:hover ~ label {
+          color: #f39c12;
+        }
+
+        .star-rating input[type="radio"]:checked ~ label,
+        .star-rating input[type="radio"]:checked + label {
+          color: #f39c12;
+        }
+
+        .strike-container {
+          display: flex;
+          gap: 10px;
+          align-items: center;
+        }
+
+        .strike-checkbox {
+          display: none;
+        }
+
+        .strike-label {
+          font-size: 24px;
+          color: #ddd;
+          cursor: pointer;
+          width: 30px;
+          text-align: center;
+          transition: color 0.2s;
+        }
+
+        .strike-checkbox:checked + .strike-label {
+          color: #e74c3c;
+        }
+
+        .radio-group {
+          display: flex;
+          gap: 15px;
+        }
+
+        .radio-option {
+          display: flex;
+          align-items: center;
+          gap: 5px;
+        }
+
+        .file-upload {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+        }
+
+        .file-upload-preview {
+          width: 200px;
+          height: 280px;
+          border: 2px dashed #ddd;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          overflow: hidden;
+          border-radius: 8px;
+        }
+
+        .file-upload-preview img {
+          max-width: 100%;
+          max-height: 100%;
+          object-fit: contain;
+        }
+
+        .image-upload-container {
+          display: flex;
+          gap: 20px;
+          flex-wrap: wrap;
+        }
+
+        .image-upload-box {
+          flex: 1;
+          min-width: 250px;
+        }
+
+        .submit-btn {
+          background-color: #2ecc71;
+          color: white;
+          border: none;
+          padding: 12px 24px;
+          font-size: 16px;
+          border-radius: 4px;
+          cursor: pointer;
+          transition: background-color 0.3s;
+          width: 100%;
+          margin-top: 20px;
+        }
+
+        .submit-btn:hover {
+          background-color: #27ae60;
+        }
+
+        .cancel-btn {
+          background-color: #e74c3c;
+          color: white;
+          border: none;
+          padding: 12px 24px;
+          font-size: 16px;
+          border-radius: 4px;
+          cursor: pointer;
+          transition: background-color 0.3s;
+          width: 100%;
+          margin-top: 10px;
+        }
+
+        .cancel-btn:hover {
+          background-color: #c0392b;
+        }
+		
+		        .category-management {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+
+        .category-controls {
+          display: flex;
+          gap: 8px;
+        }
+
+        .category-controls input {
+          flex-grow: 1;
+        }
+
+        .category-controls button {
+          padding: 5px 10px;
+          cursor: pointer;
+        }
+
+        .current-image {
+          margin-top: 10px;
+          font-size: 14px;
+          color: #666;
+        }
+    </style>
+</head>
+<body>
+<div class="form-container">
+    <h1>Edit Game</h1>
+    <form id="gameForm" enctype="multipart/form-data">
+        <div class="form-group">
+            <label for="title">Game Title</label>
+            <input type="text" id="title" name="title" required placeholder="Enter game title">
+        </div>
+
+        <div class="form-group">
+            <label for="link">Game Link</label>
+            <input type="text" id="link" name="link" placeholder="Enter store/page URL">
+        </div>
+
+        <div class="form-group">
+            <label>Rage Rating</label>
+            <div class="rating-container">
+                <div class="star-rating">
+                    <input type="radio" id="star0" name="rageRating" value="0">
+                    <input type="radio" id="star1" name="rageRating" value="1">
+                    <label for="star1">★</label>
+                    <input type="radio" id="star2" name="rageRating" value="2">
+                    <label for="star2">★</label>
+                    <input type="radio" id="star3" name="rageRating" value="3">
+                    <label for="star3">★</label>
+                </div>
+                <span id="rating-value">0/3</span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Finished</label>
+            <div class="radio-group">
+                <div class="radio-option">
+                    <input type="radio" id="finished-yes" name="finished" value="true">
+                    <label for="finished-yes">Yes</label>
+                </div>
+                <div class="radio-option">
+                    <input type="radio" id="finished-no" name="finished" value="false">
+                    <label for="finished-no">No</label>
+                </div>
+            </div>
+        </div>
+		
+		<div class="form-group">
+		  <label>Checked?</label>
+		  <div class="radio-group">
+			<div class="radio-option">
+			  <input type="radio" id="is_checked-yes" name="is_checked" value="true" tabindex="6">
+			  <label for="is_checked-yes">Yes</label>
+			</div>
+			<div class="radio-option">
+			  <input type="radio" id="is_checked-no" name="is_checked" value="false" checked tabindex="7">
+			  <label for="is_checked-no">No</label>
+			</div>
+		  </div>
+		</div>
+
+        <div class="form-group">
+            <label for="platform">Genre</label>
+            <div class="category-management">
+                <select id="platform" name="platform" tabindex="16">
+                    <option value="">Select category...</option>
+					  <option value="Amiga">Amiga</option>
+					  <option value="Atari">Atari</option>
+					  <option value="Commodore-64">Commodore-64</option>
+					  <option value="DOS">DOS</option>
+					  <option value="Windows">Windows</option>
+                </select>
+                <div class="category-controls">
+                    <input type="text" id="new-category" placeholder="New category name">
+                    <button type="button" id="add-category">Add</button>
+                    <button type="button" id="delete-category">Delete Selected</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Three Strikes</label>
+			<div class="strike-container">
+				<input type="checkbox" id="strike1" name="strikeValues" value="1" class="strike-checkbox">
+				<label for="strike1" class="strike-label">X</label>
+
+				<input type="checkbox" id="strike2" name="strikeValues" value="2" class="strike-checkbox">
+				<label for="strike2" class="strike-label">X</label>
+
+				<input type="checkbox" id="strike3" name="strikeValues" value="3" class="strike-checkbox">
+				<label for="strike3" class="strike-label">X</label>
+
+				<input type="hidden" name="strikes" id="strikesCount" value="0">
+			</div>
+        </div>
+
+        <div class="form-group">
+            <label>Game Images</label>
+            <div class="image-upload-container">
+                <div class="image-upload-box">
+                    <label>Cover Art</label>
+                    <div class="file-upload">
+                        <input type="file" id="coverArt" name="coverArt" accept="image/*">
+                        <div class="file-upload-preview" id="coverPreview">
+                            <span>No image selected</span>
+                        </div>
+                        <div class="current-image" id="currentCoverArt"></div>
+                    </div>
+                </div>
+                <div class="image-upload-box">
+                    <label>Gameplay Image</label>
+                    <div class="file-upload">
+                        <input type="file" id="gameplayImage" name="gameplayImage" accept="image/*">
+                        <div class="file-upload-preview" id="gameplayPreview">
+                            <span>No image selected</span>
+                        </div>
+                        <div class="current-image" id="currentGameplayImage"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="notes">Notes</label>
+            <textarea id="notes" name="notes" placeholder="Enter any additional notes about the game"></textarea>
+        </div>
+
+        <button type="submit" class="submit-btn">Update Game</button>
+        <button type="button" class="cancel-btn" onclick="window.location.href='game-collection.html'">Cancel</button>
+    </form>
+</div>
+
+<script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const gameId = urlParams.get('id');
+    let currentGame = null;
+    
+    // Category management
+    document.addEventListener('DOMContentLoaded', function() {
+        const platformSelect = document.getElementById('platform');
+        const newCategoryInput = document.getElementById('new-category');
+        const addButton = document.getElementById('add-category');
+        const deleteButton = document.getElementById('delete-category');
+
+        // Add new category
+        addButton.addEventListener('click', function() {
+            const newCategory = newCategoryInput.value.trim();
+            if (newCategory && !categoryExists(newCategory)) {
+                const option = document.createElement('option');
+                option.value = newCategory;
+                option.textContent = newCategory;
+                platformSelect.appendChild(option);
+                platformSelect.value = newCategory; // Select the newly added category
+                newCategoryInput.value = '';
+            }
+        });
+
+        // Delete selected category
+        deleteButton.addEventListener('click', function() {
+            if (platformSelect.selectedIndex > 0) { // Don't delete the "Select category..." option
+                const currentValue = platformSelect.value;
+                platformSelect.remove(platformSelect.selectedIndex);
+                // Reset to default if we deleted the currently selected option
+                if (currentValue === platformSelect.value) {
+                    platformSelect.selectedIndex = 0;
+                }
+            }
+        });
+
+        // Check if category already exists
+        function categoryExists(category) {
+            return Array.from(platformSelect.options).some(
+                option => option.value.toLowerCase() === category.toLowerCase()
+            );
+        }
+
+        // Allow adding by pressing Enter
+        newCategoryInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                addButton.click();
+            }
+        });
+
+        // Load game data
+        loadGame();
+    });
+
+    async function loadGame() {
+        if (!gameId) {
+            window.location.href = 'game-collection.html';
+            return;
+        }
+
+        try {
+            const response = await fetch(`http://localhost:3000/games/${gameId}`);
+            if (!response.ok) {
+                throw new Error('Game not found');
+            }
+            
+            currentGame = await response.json();
+            populateForm(currentGame);
+        } catch (error) {
+            console.error('Error loading game:', error);
+            alert('Error loading game: ' + error.message);
+            window.location.href = 'game-collection.html';
+        }
+    }
+
+    function populateForm(game) {
+        document.getElementById('title').value = game.title || '';
+        document.getElementById('link').value = game.link || '';
+        
+        // Set rage rating
+        const rageRating = game.rageRating || 0;
+        document.getElementById(`star${rageRating}`).checked = true;
+        document.getElementById('rating-value').textContent = `${rageRating}/3`;
+        
+        // Update star colors
+        const starLabels = document.querySelectorAll('.star-rating label');
+        starLabels.forEach((label, index) => {
+            label.style.color = (index + 1) <= rageRating ? '#f39c12' : '#ddd';
+        });
+        
+        // Set finished status
+        if (game.finished) {
+            document.getElementById('finished-yes').checked = true;
+        } else {
+            document.getElementById('finished-no').checked = true;
+        }
+        
+        // Set checked status
+        if (game.is_checked) {
+            document.getElementById('is_checked-yes').checked = true;
+        } else {
+            document.getElementById('is_checked-no').checked = true;
+        }
+        
+        // Set platform with improved handling
+        if (game.platform) {
+            const platformSelect = document.getElementById('platform');
+            const options = Array.from(platformSelect.options).map(opt => opt.value);
+            
+            // If platform exists in options, select it
+            if (options.includes(game.platform)) {
+                platformSelect.value = game.platform;
+            } 
+            // If platform doesn't exist, add it and select it
+            else {
+                const option = document.createElement('option');
+                option.value = game.platform;
+                option.textContent = game.platform;
+                platformSelect.appendChild(option);
+                platformSelect.value = game.platform;
+            }
+        }
+        
+        // Set strikes - initialize all checkboxes properly
+        const strikes = game.strikes || 0;
+        document.getElementById('strikesCount').value = strikes;
+        
+        // Reset all strike checkboxes first
+        for (let i = 1; i <= 3; i++) {
+            const strikeCheckbox = document.getElementById(`strike${i}`);
+            strikeCheckbox.checked = false;
+            document.querySelector(`label[for="strike${i}"]`).style.color = '#ddd';
+        }
+        
+        // Then set the checked ones
+        for (let i = 1; i <= strikes; i++) {
+            document.getElementById(`strike${i}`).checked = true;
+            document.querySelector(`label[for="strike${i}"]`).style.color = '#e74c3c';
+        }
+        
+        // Set notes
+        document.getElementById('notes').value = game.notes || '';
+        
+        // Set current images
+        if (game.coverArtPath) {
+            document.getElementById('coverPreview').innerHTML = 
+                `<img src="${game.coverArtPath}" alt="Current cover art">`;
+            document.getElementById('currentCoverArt').innerHTML = 
+                `Current: ${game.coverArtPath}`;
+        }
+        
+        if (game.gameplayImagePath) {
+            document.getElementById('gameplayPreview').innerHTML = 
+                `<img src="${game.gameplayImagePath}" alt="Current gameplay image">`;
+            document.getElementById('currentGameplayImage').innerHTML = 
+                `Current: ${game.gameplayImagePath}`;
+        }
+    }
+
+    async function submitForm(event) {
+        event.preventDefault();
+        
+        const formData = new FormData(document.getElementById('gameForm'));
+        
+        // Calculate strikes count
+        const strikeCheckboxes = document.querySelectorAll('input[name="strikeValues"]:checked');
+        formData.set('strikes', strikeCheckboxes.length.toString());
+        
+        try {
+            const response = await fetch(`http://localhost:3000/games/update/${gameId}`, {
+                method: 'POST',
+                body: formData
+            });
+            
+            if (response.ok) {
+                alert('Game updated successfully');
+                window.location.href = 'game-collection.html';
+            } else {
+                const error = await response.json();
+                throw new Error(error.error || 'Failed to update game');
+            }
+        } catch (error) {
+            console.error('Error updating game:', error);
+            alert('Error updating game: ' + error.message);
+        }
+    }
+
+    // Star rating interaction
+    const starInputs = document.querySelectorAll('.star-rating input[type="radio"]');
+    const ratingValue = document.getElementById('rating-value');
+
+    starInputs.forEach(input => {
+        input.addEventListener('change', () => {
+            const value = input.value;
+            ratingValue.textContent = `${value}/3`;
+            
+            // Update star colors
+            const starLabels = document.querySelectorAll('.star-rating label');
+            starLabels.forEach((label, index) => {
+                label.style.color = (index + 1) <= value ? '#f39c12' : '#ddd';
+            });
+        });
+    });
+
+    // Strike checkboxes interaction
+    const strikeCheckboxes = document.querySelectorAll('.strike-checkbox');
+    const strikesCountInput = document.getElementById('strikesCount');
+
+    strikeCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', () => {
+            // Uncheck all higher strikes when a lower one is unchecked
+            if (!checkbox.checked) {
+                const strikeNumber = parseInt(checkbox.value);
+                for (let i = strikeNumber + 1; i <= 3; i++) {
+                    const higherStrike = document.getElementById(`strike${i}`);
+                    if (higherStrike.checked) {
+                        higherStrike.checked = false;
+                        document.querySelector(`label[for="strike${i}"]`).style.color = '#ddd';
+                    }
+                }
+            }
+            
+            // Update strike labels color
+            document.querySelector(`label[for="strike${checkbox.value}"]`).style.color = 
+                checkbox.checked ? '#e74c3c' : '#ddd';
+                
+            // Update count
+            const checkedCount = document.querySelectorAll('.strike-checkbox:checked').length;
+            strikesCountInput.value = checkedCount;
+        });
+    });
+
+    // Cover art preview
+    const coverInput = document.getElementById('coverArt');
+    const coverPreview = document.getElementById('coverPreview');
+
+    coverInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                coverPreview.innerHTML = `<img src="${event.target.result}" alt="Cover preview">`;
+            };
+            reader.readAsDataURL(file);
+        } else {
+            if (currentGame?.coverArtPath) {
+                coverPreview.innerHTML = `<img src="${currentGame.coverArtPath}" alt="Current cover art">`;
+            } else {
+                coverPreview.innerHTML = '<span>No image selected</span>';
+            }
+        }
+    });
+
+    // Gameplay image preview
+    const gameplayInput = document.getElementById('gameplayImage');
+    const gameplayPreview = document.getElementById('gameplayPreview');
+
+    gameplayInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                gameplayPreview.innerHTML = `<img src="${event.target.result}" alt="Gameplay preview">`;
+            };
+            reader.readAsDataURL(file);
+        } else {
+            if (currentGame?.gameplayImagePath) {
+                gameplayPreview.innerHTML = `<img src="${currentGame.gameplayImagePath}" alt="Current gameplay image">`;
+            } else {
+                gameplayPreview.innerHTML = '<span>No image selected</span>';
+            }
+        }
+    });
+
+    // Initialize the form
+    document.addEventListener('DOMContentLoaded', () => {
+        loadGame();
+        document.getElementById('gameForm').addEventListener('submit', submitForm);
+    });
+</script>
+</body>
+</html>
