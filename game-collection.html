@@ -280,48 +280,47 @@
 function renderAdditionalContent(game) {
     let html = '';
     
-    // Combine both photos and notes into a single array with timestamps
-    const allMedia = [];
+    // Create a combined timeline of all content additions
+    const timeline = [];
     
-    // Add additional photos with their timestamps
+    // Add all photos to timeline
     if (game.additionalPhotos && game.additionalPhotos.length > 0) {
         game.additionalPhotos.forEach((photo, index) => {
-            allMedia.push({
+            timeline.push({
                 type: 'photo',
                 data: photo,
                 index: index,
-                timestamp: photo.dateAdded || new Date().toISOString() // Use dateAdded if available, otherwise current time
+                timestamp: photo.dateAdded || Date.now() + index
             });
         });
     }
     
-    // Add additional notes with their timestamps
+    // Add all notes to timeline
     if (game.additionalNotes && game.additionalNotes.length > 0) {
         game.additionalNotes.forEach((note, index) => {
-            allMedia.push({
+            timeline.push({
                 type: 'note',
                 data: note,
                 index: index,
-                timestamp: note.dateAdded || new Date().toISOString() // Use dateAdded if available, otherwise current time
+                timestamp: note.dateAdded || Date.now() + index + 1000
             });
         });
     }
     
-    // Sort by timestamp to maintain chronological order
-    allMedia.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+    // Sort by timestamp (oldest first)
+    timeline.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
     
-    // Render in chronological order
-    if (allMedia.length > 0) {
+    // Render everything in chronological order
+    if (timeline.length > 0) {
         html += '<div class="additional-content">';
         html += '<strong>Additional Content:</strong>';
-        html += '<div class="media-timeline">';
+        html += '<div class="content-timeline">';
         
-        allMedia.forEach((item, globalIndex) => {
+        timeline.forEach(item => {
             if (item.type === 'photo') {
                 html += `
-                    <div class="timeline-item photo-item">
-                        <div class="media-type-badge">Photo</div>
-                        <img src="${item.data.path}" alt="Additional photo ${item.index + 1}" 
+                    <div class="photo-frame">
+                        <img src="${item.data.path}" alt="Additional photo" 
                              onclick="togglePhotoSize(this)">
                         <button class="delete-photo-btn" 
                                 onclick="deletePhoto(${game.id}, ${item.index})">×</button>
@@ -329,8 +328,7 @@ function renderAdditionalContent(game) {
                 `;
             } else if (item.type === 'note') {
                 html += `
-                    <div class="timeline-item note-item">
-                        <div class="media-type-badge">Note</div>
+                    <div class="note-frame">
                         <div class="note-content">${item.data.content}</div>
                         <div class="note-date">${new Date(item.data.dateAdded).toLocaleDateString()}</div>
                         <button class="delete-note-btn" 
@@ -598,25 +596,23 @@ function renderAdditionalContent(game) {
         timeline.forEach(item => {
             if (item.type === 'photo') {
                 html += `
-                    <div class="timeline-photo-item">
-                        <div class="content-label">Photo:</div>
+                    <!-- <div class="timeline-photo-item"> -->
                         <div class="photo-container">
                             <img src="${item.data.path}" alt="Additional photo" 
                                  onclick="togglePhotoSize(this)">
                             <button class="delete-photo-btn" 
                                     onclick="deletePhoto(${game.id}, ${item.index})">×</button>
                         </div>
-                    </div>
+                    <!-- </div> -->
                 `;
             } else if (item.type === 'note') {
                 html += `
-                    <div class="timeline-note-item">
-                        <div class="content-label">Note:</div>
+                    <!-- <div class="timeline-note-item"> -->
                         <div class="note-content">${item.data.content}</div>
                         <div class="note-date">${new Date(item.data.dateAdded).toLocaleDateString()}</div>
                         <button class="delete-note-btn" 
                                 onclick="deleteNote(${game.id}, ${item.index})">×</button>
-                    </div>
+                    <!-- </div> -->
                 `;
             }
         });
