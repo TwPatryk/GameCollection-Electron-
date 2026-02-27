@@ -7,6 +7,10 @@
 	<link rel="stylesheet" href="styles.css">
 </head>
 <body>
+<div class="stats-bar">
+    <span class="stat-item" id="checkedCount">to do: 0</span>
+    <span class="stat-item" id="todoCount">checked: 0</span>
+</div>
 <div class="menu-container">
     <div class="menu-header">
         <h2 class="menu-title">GAME COLLECTION</h2>
@@ -61,6 +65,41 @@
     <div class="no-selection">Select a game to view details</div>
 </div>
 
+<style>
+.stats-bar {
+    position: fixed;
+    top: 5px;
+    right: 10px;
+    font-size: 11px;
+    color: #888;
+    background: transparent;
+    padding: 2px 5px;
+    border-radius: 3px;
+    z-index: 1000;
+    opacity: 0.7;
+    font-family: monospace;
+    pointer-events: none;
+}
+
+.stat-item {
+    margin-left: 10px;
+}
+
+.stat-item:first-child {
+    margin-left: 0;
+}
+
+.stat-item:hover {
+    opacity: 1;
+    color: #555;
+}
+
+/* Make room for the stats bar at the top of menu container */
+.menu-container {
+    margin-top: 10px;
+}
+</style>
+
 <script>
     const { ipcRenderer } = require('electron');
     let games = [];
@@ -79,11 +118,29 @@
             if (JSON.stringify(games) !== JSON.stringify(newGames)) {
                 games = newGames;
                 populatePlatformOptions();
+                await updateStats(); // Update stats when games change
                 // Preserve current filters and selection when refreshing
                 applyFilters();
             }
         } catch (error) {
             console.error('Error loading games:', error);
+        }
+    }
+
+    async function updateStats() {
+        try {
+            // Fetch checked count (is_checked == 0)
+            const checkedResponse = await fetch('http://localhost:3000/games/stats/checked');
+            const checkedData = await checkedResponse.json();
+            
+            // Fetch todo count (is_checked == 1)
+            const todoResponse = await fetch('http://localhost:3000/games/stats/todo');
+            const todoData = await todoResponse.json();
+            
+            document.getElementById('checkedCount').textContent = `checked: ${todoData.count}`;
+            document.getElementById('todoCount').textContent = `to do: ${checkedData.count}`;
+        } catch (error) {
+            console.error('Error updating stats:', error);
         }
     }
 

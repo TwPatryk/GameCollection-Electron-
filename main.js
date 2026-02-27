@@ -550,6 +550,29 @@ async function initializeApp() {
         res.status(500).json({ error: error.message });
       }
     });
+	
+		// Dodaj te endpointy w main.js po istniejących route'ach
+	expressApp.get('/games/stats/checked', async (req, res) => {
+	  try {
+		const stmt = db.db.prepare('SELECT COUNT(*) as count FROM games WHERE is_checked == 0');
+		const result = stmt.get();
+		res.json({ count: result.count });
+	  } catch (error) {
+		console.error('Error getting checked count:', error);
+		res.status(500).json({ error: error.message });
+	  }
+	});
+
+	expressApp.get('/games/stats/todo', async (req, res) => {
+	  try {
+		const stmt = db.db.prepare('SELECT COUNT(*) as count FROM games WHERE is_checked == 1');
+		const result = stmt.get();
+		res.json({ count: result.count });
+	  } catch (error) {
+		console.error('Error getting todo count:', error);
+		res.status(500).json({ error: error.message });
+	  }
+	});
     
     server = expressApp.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
