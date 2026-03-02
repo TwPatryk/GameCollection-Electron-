@@ -987,13 +987,13 @@
 		}
 		
 		function searchYouTube(gameTitle) {
-        // Encode the search query
-        const searchQuery = encodeURIComponent(gameTitle + " longplay");
-        
-        // Open YouTube search in default browser
-        window.open(`https://www.youtube.com/results?search_query=${searchQuery}`, '_blank');
-    }
-		
+			// Encode the search query
+			const searchQuery = encodeURIComponent(gameTitle + " longplay");
+			
+			// Otwiera w domyślnej przeglądarce (Firefox) w nowej karcie
+			const { shell } = require('electron');
+			shell.openExternal(`https://www.youtube.com/results?search_query=${searchQuery}`);
+		}
 		let randomModeActive = false;
 		let originalFilteredGames = [];
 
