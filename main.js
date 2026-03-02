@@ -5,11 +5,13 @@ const express = require('express');
 const multer = require('multer');
 const { v4: uuidv4 } = require('uuid');
 const Database = require('./database');
+const dotenv = require('dotenv');
 
 let mainWindow;
 let server;
 let db;
 const PORT = 3000;
+dotenv.config();
 
 // Get the application directory (where the executable/main files are located)
 function getAppDataPath() {
@@ -620,7 +622,6 @@ ipcMain.handle('select-file', async () => {
   return result;
 });
 
-// Add this with the other IPC handlers
 ipcMain.handle('open-game-folder', async (event, title) => {
     try {
         const folderName = sanitizeFolderName(title);
@@ -641,6 +642,12 @@ ipcMain.handle('open-game-folder', async (event, title) => {
         return { success: false, message: error.message };
     }
 });
+
+// <-- DODAJ TEN NOWY HANDLER OD TUTAJ
+ipcMain.handle('get-youtube-api-key', () => {
+    return process.env.YOUTUBE_API_KEY || '';
+});
+// <-- DO TUTAJ
 
 ipcMain.handle('save-file', async (event, defaultPath) => {
   const result = await dialog.showSaveDialog(mainWindow, {
