@@ -57,10 +57,13 @@
 
         <div class="filter-row">
             <span class="filter-label">Platform:</span>
-            <select id="platformFilter" class="filter-select" onchange="applyFilters()">
-                <option value="all">All</option>
-                <!-- Platform options will be populated by JavaScript -->
-            </select>
+            <div style="display: flex; gap: 5px;">
+                <select id="platformFilter" class="filter-select" onchange="applyFilters()" style="flex: 1;">
+                    <option value="all">All</option>
+                    <!-- Platform options will be populated by JavaScript -->
+                </select>
+                <button id="randomGameBtn" class="filter-button" onclick="selectRandomGame()" style="min-width: 70px;">Random</button>
+            </div>
         </div>
     </div>
     <div class="menu" id="menu">
@@ -982,13 +985,96 @@ async function addPhoto(gameId) {
 			alert('Error: ' + error.message);
 		}
 	}
+	
+	let randomModeActive = false;
+    let originalFilteredGames = [];
+
+    function selectRandomGame() {
+        if (games.length === 0) return;
+        
+        const randomBtn = document.getElementById('randomGameBtn');
+        
+        if (!randomModeActive) {
+            // Store current filtered games before random
+            originalFilteredGames = [...filteredGames];
+            
+            // Get all games that match current filters (excluding any existing random filter)
+            const tempSearchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const tempFinishedFilter = document.getElementById('finishedFilter').value;
+            const tempIsCheckedFilter = document.getElementById('isCheckedFilter').value;
+            const tempPlatformFilter = document.getElementById('platformFilter').value;
+            const tempStrikesFilter = document.getElementById('strikesFilter').value;
+            
+            const availableGames = games.filter(game => {
+                const matchesSearch = tempSearchTerm === '' ||
+                    game.title.toLowerCase().includes(tempSearchTerm) ||
+                    (game.platform && game.platform.toLowerCase().includes(tempSearchTerm)) ||
+                    (game.notes && game.notes.toLowerCase().includes(tempSearchTerm));
+
+                const matchesFinished = tempFinishedFilter === 'all' ||
+                    (tempFinishedFilter === 'yes' && game.finished) ||
+                    (tempFinishedFilter === 'no' && !game.finished);
+                    
+                const matchesIsChecked = tempIsCheckedFilter === 'all' ||
+                    (tempIsCheckedFilter === 'yes' && game.is_checked) ||
+                    (tempIsCheckedFilter === 'no' && !game.is_checked);
+
+                const matchesPlatform = tempPlatformFilter === 'all' ||
+                    game.platform === tempPlatformFilter;
+
+                const gameStrikes = game.strikes || 0;
+                const matchesStrikes = tempStrikesFilter === 'all' ||
+                    gameStrikes.toString() === tempStrikesFilter;
+
+                return matchesSearch && matchesFinished && matchesPlatform && matchesIsChecked && matchesStrikes;
+            });
+            
+            if (availableGames.length === 0) {
+                alert('No games match current filters!');
+                return;
+            }
+            
+            // Select random game
+            const randomIndex = Math.floor(Math.random() * availableGames.length);
+            const randomGame = availableGames[randomIndex];
+            
+            // Set filteredGames to just this one game
+            filteredGames = [randomGame];
+            
+            // Update button state
+            randomModeActive = true;
+            randomBtn.classList.add('active');
+            randomBtn.textContent = 'Reset';
+            
+            // Render and select the random game
+            renderMenu();
+            selectedIndex = 0;
+            selectedId = filteredGames[0].id;
+            updateSelection(0, selectedId);
+        } else {
+            // Reset to original filtered games
+            randomModeActive = false;
+            randomBtn.classList.remove('active');
+            randomBtn.textContent = 'Random';
+            
+            // Reapply original filters
+            applyFilters();
+        }
+    }
 
 	function applyFilters() {
+		// Reset random mode if active
+		if (randomModeActive) {
+			randomModeActive = false;
+			document.getElementById('randomGameBtn').classList.remove('active');
+			document.getElementById('randomGameBtn').textContent = 'Random';
+		}
+		
 		const searchTerm = document.getElementById('searchInput').value.toLowerCase();
 		const finishedFilter = document.getElementById('finishedFilter').value;
 		const isCheckedFilter = document.getElementById('isCheckedFilter').value;
 		const platformFilter = document.getElementById('platformFilter').value;
-		const strikesFilter = document.getElementById('strikesFilter').value; // Dodaj tę linię
+		const strikesFilter = document.getElementById('strikesFilter').value;
 
 		filteredGames = games.filter(game => {
 			const matchesSearch = searchTerm === '' ||
@@ -1007,7 +1093,6 @@ async function addPhoto(gameId) {
 			const matchesPlatform = platformFilter === 'all' ||
 				game.platform === platformFilter;
 
-			// Dodaj obsługę filtra strikes
 			const gameStrikes = game.strikes || 0;
 			const matchesStrikes = strikesFilter === 'all' ||
 				gameStrikes.toString() === strikesFilter;
@@ -1023,7 +1108,6 @@ async function addPhoto(gameId) {
 				case 'date':
 					return b.id - a.id;
 				case 'rating':
-					// Handle null/undefined ratings by treating them as 0
 					const aRating = a.rageRating || 0;
 					const bRating = b.rageRating || 0;
 					return bRating - aRating;
