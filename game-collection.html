@@ -42,6 +42,17 @@
                 <option value="yes">Yes</option>
                 <option value="no">No</option>
             </select>
+			<div class="filter-row">
+            <span class="filter-label">Strikes:</span>
+            <select id="strikesFilter" class="filter-select" onchange="applyFilters()">
+                <option value="all">All</option>
+                <option value="0">0</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+            </select>
+        </div>
+			
         </div>
 
         <div class="filter-row">
@@ -245,7 +256,7 @@
                         <div class="game-detail">
                             <span class="game-detail-label">Three Strikes:</span>
                             <span class="strikes">${strikes}</span>
-                            <small style="margin-left: 8px; color: #777;">(${strikeCount}/3)</small>
+                            <small style="margin-left: 5px; color: #777;">(${strikeCount}/3)</small>
                         </div>
 
                         ${game.notes ? `
@@ -977,6 +988,7 @@ async function addPhoto(gameId) {
 		const finishedFilter = document.getElementById('finishedFilter').value;
 		const isCheckedFilter = document.getElementById('isCheckedFilter').value;
 		const platformFilter = document.getElementById('platformFilter').value;
+		const strikesFilter = document.getElementById('strikesFilter').value; // Dodaj tę linię
 
 		filteredGames = games.filter(game => {
 			const matchesSearch = searchTerm === '' ||
@@ -995,7 +1007,12 @@ async function addPhoto(gameId) {
 			const matchesPlatform = platformFilter === 'all' ||
 				game.platform === platformFilter;
 
-			return matchesSearch && matchesFinished && matchesPlatform && matchesIsChecked;
+			// Dodaj obsługę filtra strikes
+			const gameStrikes = game.strikes || 0;
+			const matchesStrikes = strikesFilter === 'all' ||
+				gameStrikes.toString() === strikesFilter;
+
+			return matchesSearch && matchesFinished && matchesPlatform && matchesIsChecked && matchesStrikes;
 		});
 
 		// Apply sorting - using slice() to create a new array

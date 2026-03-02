@@ -44,16 +44,18 @@
             display: flex;
             flex-direction: column;
             gap: 8px;
+			font-size: 8px;
         }
 
         .filter-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
+			font-size: 11px;
         }
 
         .filter-label {
-            font-weight: bold;
+            font-weight: 700;
             font-size: 0.9em;
             color: #555;
         }
@@ -83,6 +85,7 @@
             border: 1px solid #ddd;
             border-radius: 4px;
             background-color: white;
+			font-size: 11px;
         }
 
         .menu {
