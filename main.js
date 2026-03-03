@@ -643,11 +643,14 @@ ipcMain.handle('open-game-folder', async (event, title) => {
     }
 });
 
-// <-- DODAJ TEN NOWY HANDLER OD TUTAJ
 ipcMain.handle('get-youtube-api-key', () => {
-    return process.env.YOUTUBE_API_KEY || '';
+    const apiKey = process.env.YOUTUBE_API_KEY || '';
+    console.log('get-youtube-api-key called, exists:', !!apiKey);
+    if (!apiKey) {
+        console.warn('⚠️ YOUTUBE_API_KEY not found in environment!');
+    }
+    return apiKey;
 });
-// <-- DO TUTAJ
 
 ipcMain.handle('save-file', async (event, defaultPath) => {
   const result = await dialog.showSaveDialog(mainWindow, {

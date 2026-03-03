@@ -1106,6 +1106,97 @@
 				applyFilters();
 			}
 		}
+		
+	// Funkcja dla LEWEGO przycisku - otwiera PIERWSZY wynik z YouTube
+	async function searchYouTubeFirstResult(gameTitle) {
+		console.log('=== searchYouTubeFirstResult START ===');
+		console.log('Szukana gra:', gameTitle);
+		
+		try {
+			// 1. Pobierz klucz API
+			console.log('Próbuję pobrać klucz API...');
+			let API_KEY = '';
+			
+			try {
+				API_KEY = await window.electronAPI.getYouTubeApiKey();
+				console.log('Odpowiedź z getYouTubeApiKey:', API_KEY ? 'klucz otrzymany' : 'BRAK KLUCZA');
+			} catch (ipcError) {
+				console.error('Błąd IPC:', ipcError);
+			}
+			
+			// 2. Jeśli nie ma klucza, użyj zwykłego wyszukiwania
+			if (!API_KEY || API_KEY === '') {
+				console.log('⚠️ BRAK KLUCZA API - używam zwykłego wyszukiwania');
+				const searchQuery = encodeURIComponent(gameTitle + " longplay");
+				const { shell } = require('electron');
+				await shell.openExternal(`https://www.youtube.com/results?search_query=${searchQuery}`);
+				console.log('=== searchYouTubeFirstResult KONIEC (fallback) ===\n');
+				return;
+			}
+
+			// 3. Przygotuj zapytanie
+			const searchQuery = encodeURIComponent(gameTitle + " longplay");
+			const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${searchQuery}&maxResults=1&type=video&key=${API_KEY}`;
+			
+			console.log('Wysyłam zapytanie do YouTube API...');
+			console.log('URL (bez klucza):', url.replace(API_KEY, '***'));
+			
+			// 4. Wykonaj zapytanie z timeout
+			const controller = new AbortController();
+			const timeoutId = setTimeout(() => controller.abort(), 8000);
+			
+			const response = await fetch(url, {
+				signal: controller.signal,
+				headers: { 'Accept': 'application/json' }
+			});
+			
+			clearTimeout(timeoutId);
+			console.log('Status odpowiedzi:', response.status);
+			
+			if (!response.ok) {
+				const errorText = await response.text();
+				console.error('Odpowiedź błędu:', errorText);
+				throw new Error(`HTTP ${response.status}`);
+			}
+			
+			const data = await response.json();
+			console.log('Liczba wyników:', data.items ? data.items.length : 0);
+			
+			// 5. Sprawdź wyniki
+			if (data.items && data.items.length > 0) {
+				const firstItem = data.items[0];
+				console.log('Pierwszy wynik - typ:', firstItem.id.kind);
+				
+				if (firstItem.id && firstItem.id.kind === 'youtube#video' && firstItem.id.videoId) {
+					const videoId = firstItem.id.videoId;
+					const videoTitle = firstItem.snippet.title;
+					
+					console.log('✅ ZNALEZIONO FILM:');
+					console.log('   Tytuł:', videoTitle);
+					console.log('   ID:', videoId);
+					
+					const { shell } = require('electron');
+					await shell.openExternal(`https://www.youtube.com/watch?v=${videoId}`);
+					console.log('✅ Film otwarty');
+				} else {
+					console.log('❌ Pierwszy wynik nie jest filmem');
+					throw new Error('Nie znaleziono filmu');
+				}
+			} else {
+				console.log('❌ Brak wyników wyszukiwania');
+				throw new Error('Brak wyników');
+			}
+		} catch (error) {
+			console.error('❌ BŁĄD w searchYouTubeFirstResult:', error);
+			
+			// Fallback do zwykłego wyszukiwania
+			console.log('Używam zwykłego wyszukiwania jako fallback');
+			const searchQuery = encodeURIComponent(gameTitle + " longplay");
+			const { shell } = require('electron');
+			await shell.openExternal(`https://www.youtube.com/results?search_query=${searchQuery}`);
+		}
+		console.log('=== searchYouTubeFirstResult KONIEC ===\n');
+	}
 
 		function applyFilters() {
 			// Reset random mode if active
@@ -1186,47 +1277,68 @@
 			}
 		}
 
-    function renderMenu() {
-        const menu = document.getElementById('menu');
-        menu.innerHTML = '';
+		function renderMenu() {
+			const menu = document.getElementById('menu');
+			menu.innerHTML = '';
 
-        if (filteredGames.length === 0) {
-            menu.innerHTML = '<div class="no-results">No games found</div>';
-            return;
-        }
+			if (filteredGames.length === 0) {
+				menu.innerHTML = '<div class="no-results">No games found</div>';
+				return;
+			}
 
-        filteredGames.forEach((game, index) => {
-            const menuItem = document.createElement('div');
-            menuItem.className = 'menu-item' + (index === selectedIndex ? ' selected' : '');
-            
-            // Lewy przycisk - YouTube
-            menuItem.onclick = (e) => {
-                if (e.button === 0) { // Lewy przycisk
-                    searchYouTube(game.title);
-                }
-            };
-            
-            // Prawy przycisk - zaznacz grę (stara funkcjonalność)
-            menuItem.oncontextmenu = (e) => {
-                e.preventDefault();
-                updateSelection(index, game.id);
-            };
-            
-            // Obsługa klawisza Enter - YouTube
-            menuItem.onkeydown = (e) => {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    searchYouTube(game.title);
-                }
-            };
-            menuItem.tabIndex = 0;
-            
-            menuItem.innerHTML = `
-                <div><strong>${game.title}</strong></div>
-            `;
-            menu.appendChild(menuItem);
-        });
-    }
+			filteredGames.forEach((game, index) => {
+				const menuItem = document.createElement('div');
+				menuItem.className = 'menu-item' + (index === selectedIndex ? ' selected' : '');
+				
+				// Enter - pierwszy wynik
+				menuItem.onkeydown = (e) => {
+					if (e.key === 'Enter' && !e.shiftKey) {
+						e.preventDefault();
+						console.log('Enter na:', game.title);
+						searchYouTubeFirstResult(game.title);
+					}
+					else if (e.key === 'Enter' && e.shiftKey) {
+						e.preventDefault();
+						console.log('Shift+Enter na:', game.title);
+						searchYouTubeList(game.title);
+					}
+				};
+				
+				// Wyłącz domyślne kliknięcia myszą
+				menuItem.onclick = (e) => {
+					e.preventDefault();
+					// Zaznacz grę przy kliknięciu (opcjonalnie)
+					updateSelection(index, game.id);
+				};
+				
+				menuItem.oncontextmenu = (e) => {
+					e.preventDefault();
+					// Zaznacz grę przy prawym kliknięciu (opcjonalnie)
+					updateSelection(index, game.id);
+				};
+				
+				menuItem.tabIndex = 0;
+				
+				menuItem.innerHTML = `
+					<div><strong>${game.title}</strong></div>
+				`;
+				menu.appendChild(menuItem);
+			});
+		}
+		
+				// Funkcja dla Shift+Enter - otwiera LISTĘ wyników wyszukiwania
+		function searchYouTubeList(gameTitle) {
+			console.log('=== searchYouTubeList START ===');
+			console.log('Szukana gra:', gameTitle);
+			
+			const searchQuery = encodeURIComponent(gameTitle + " longplay");
+			console.log('Otwieram listę wyszukiwania:', `https://www.youtube.com/results?search_query=${searchQuery}`);
+			
+			const { shell } = require('electron');
+			shell.openExternal(`https://www.youtube.com/results?search_query=${searchQuery}`);
+			
+			console.log('=== searchYouTubeList KONIEC ===\n');
+		}
 
 		// Initialize the app
 		document.addEventListener('DOMContentLoaded', () => {
